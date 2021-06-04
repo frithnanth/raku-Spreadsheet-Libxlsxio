@@ -1,3 +1,5 @@
+[![test](https://github.com/frithnanth/raku-Spreadsheet-Libxlsxio/actions/workflows/test.yml/badge.svg)](https://github.com/frithnanth/raku-Spreadsheet-Libxlsxio/actions/workflows/test.yml)
+
 NAME
 ====
 
