@@ -1,0 +1,12 @@
+#!/usr/bin/env raku
+
+use Test;
+use lib 'lib';
+
+use-ok 'Spreadsheet::Libxlsxio::Constants';
+use-ok 'Spreadsheet::Libxlsxio::Exception';
+use-ok 'Spreadsheet::Raw::Libxlsxioread';
+use-ok 'Spreadsheet::Raw::Libxlsxiowrite';
+use-ok 'Spreadsheet::Libxlsxio';
+
+done-testing;

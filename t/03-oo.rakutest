@@ -1,0 +1,112 @@
+#!/usr/bin/env perl6
+
+use Test;
+use lib 'lib';
+use Spreadsheet::Libxlsxio;
+use Spreadsheet::Libxlsxio::Constants;
+
+subtest 'open file for reading' => {
+  fails-like { Spreadsheet::Libxlsxio::Read.new: file => 'nosuchfile' },
+             X::Libxlsxio,
+             message => /'File not found'/,
+             'fails if file does not exist';
+  my $vss = Spreadsheet::Libxlsxio::Read.new: 't/test.xlsx';
+  is $vss.DEFINITE, True, 'new using a value';
+  my $ss = Spreadsheet::Libxlsxio::Read.new: file => 't/test.xlsx';
+  is $ss.DEFINITE, True, 'new using a named parameter';
+  my $data = 't/test.xlsx'.IO.slurp: :bin;
+  my $mss = Spreadsheet::Libxlsxio::Read.new: :$data;
+  is $mss.DEFINITE, True, 'new using a Buf as a named parameter';
+  my $vmss = Spreadsheet::Libxlsxio::Read.new: $data;
+  is $vmss.DEFINITE, True, 'new using a Buf as a value';
+}
+
+subtest 'version' => {
+  LEAVE { for dir('t', test => { /^newfile.xlsx/ }) -> $file { $file.unlink } }
+  my $sr = Spreadsheet::Libxlsxio::Read.new: :file('t/test.xlsx');
+  my $rversion = $sr.version;
+  my $sw = Spreadsheet::Libxlsxio::Write.new: :file('t/newfile.xlsx');
+  my $wversion = $sw.version;
+  if so %*ENV<TEST_AUTHOR> {
+    is $rversion, '0.2.29', 'library reader version as string';
+    is-deeply $rversion.List, (0, 2, 29), 'library reader version';
+    is $wversion, '0.2.29', 'library writer version as string';
+    is-deeply $wversion.List, (0, 2, 29), 'library writer version';
+  } else {
+    is $rversion ~~ Str, True, 'reader version returns a string';
+    ok $rversion.List.elems == 3, 'reader version returns a list of three elements';
+    is $wversion ~~ Str, True, 'writer version returns a string';
+    ok $wversion.List.elems == 3, 'writer version returns a list of three elements';
+  }
+}
+
+subtest 'sheet listing operations' => {
+  my $ss = Spreadsheet::Libxlsxio::Read.new: 't/test.xlsx';
+
+  my @sheets;
+  $ss.sheet-list(-> $name { @sheets.push: $name; 1 });
+  is-deeply @sheets, ['Sheet1'], 'read sheet list';
+
+  my $sheet = $ss.sheet-open;
+  isa-ok $sheet, Spreadsheet::Raw::Libxlsxioread::xlsxioreadersheet, 'open sheet';
+  ok $ss.sheet-flags($sheet) == XLSXIOREAD_SKIP_EMPTY_ROWS, 'read sheet flags';
+  lives-ok { $ss.sheet-close($sheet) }, 'close sheet';
+
+  my $sheetlist = $ss.sheetlist-open;
+  isa-ok $sheetlist, Spreadsheet::Raw::Libxlsxioread::xlsxioreadersheetlist, 'open sheetlist';
+  is $ss.sheetlist-next($sheetlist), 'Sheet1', 'read next sheet name';
+  lives-ok { $ss.sheetlist-close($sheetlist) }, 'close sheet list';
+}
+
+subtest 'row & column reading operations' => {
+  my $ss = Spreadsheet::Libxlsxio::Read.new: 't/test.xlsx';
+  my $sheet = $ss.sheet-open;
+
+  ok $ss.next-row($sheet) == 1, 'next row';
+  is $ss.next-cell($sheet), 'a', 'read a cell';
+  ok $ss.last-column-read($sheet) == 1, 'last column read';
+  lives-ok { my $value; repeat { $value = $ss.next-cell($sheet) } while $value }, 'read all cells in a row';
+  ok $ss.last-row-read($sheet) == 1, 'last row completely read';
+
+  $ss.sheet-close($sheet);
+}
+
+subtest 'read & process the whole spreadsheet' => {
+  my $ss = Spreadsheet::Libxlsxio::Read.new: 't/test.xlsx';
+  my @values;
+  $ss.sheet-list(-> $name {
+    @values.push: "[$name]";
+    $ss.process: $name,
+                 -> $, $, $value { @values.push: $value with $value; XLSXIOREAD_CONTINUE },
+                 -> $, $ { XLSXIOREAD_CONTINUE }
+  });
+  is-deeply @values, [qw{[Sheet1] a b c 1 2 3 1.1 2.2 3.3 44300 44301 44302 2.1 4.2 6.3}], 'spreadsheet content';
+}
+
+subtest 'write' => {
+  LEAVE { for dir('t', test => { /^newfile.xlsx/ }) -> $file { $file.unlink } }
+  my $ss = Spreadsheet::Libxlsxio::Write.new: :file('t/newfile.xlsx'), :sheet('Sheet1');
+  lives-ok { $ss.detection-rows(10) }, 'set buffering';
+  lives-ok { $ss.row-height(10) }, 'set row height';
+  lives-ok { $ss.add-column('Col1', 16) }, 'add a column';
+  $ss.add-column('Col2', 0).add-column('Col3', 0).add-column('Col4', 0).write-row;
+  my $dt = DateTime.new('2021-07-25T00:00:00').Instant.to-posix[0];
+  for ^10 -> $i {
+    $ss.add-string("Test$i").add-int($i).add-num(π).add-datetime($dt).write-row;
+  }
+  lives-ok { $ss.close }, 'write the spreadsheet';
+  my $sr = Spreadsheet::Libxlsxio::Read.new: 't/newfile.xlsx';
+  my @values;
+  $sr.sheet-list(-> $name {
+    @values.push: "[$name]";
+    $sr.process: $name,
+                 -> $, $, $value { @values.push: $value with $value; XLSXIOREAD_CONTINUE },
+                 -> $, $ { XLSXIOREAD_CONTINUE }
+  });
+  my @results = ("[Sheet1]", "Col1", "Col2", "Col3", "Col4",
+                (do "Test$_", "$_", "3.1415926535897931159979634685442", '44402.00000577547' for ^10).flat).flat;
+  is-deeply @values, @results, 'verify spreadsheet content';
+  is to-date(@values[8]), DateTime.new('2021-07-25T00:00:00'), 'date conversion';
+}
+
+done-testing;

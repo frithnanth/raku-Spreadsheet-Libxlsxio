@@ -1,0 +1,94 @@
+#!/usr/bin/env perl6
+
+use Test;
+use NativeCall;
+use lib 'lib';
+use Spreadsheet::Raw::Libxlsxioread;
+use Spreadsheet::Libxlsxio::Constants;
+
+subtest 'version' => {
+  my int32 ($major, $minor, $micro);
+  xlsxioread_get_version($major, $minor, $micro);
+  if so %*ENV<TEST_AUTHOR> {
+    is-deeply ($major, $minor, $micro), (0, 2, 29), 'library version';
+    is xlsxioread_get_version_string, '0.2.29', 'library version as string';
+  } else {
+    skip 'skipping version test';
+  }
+}
+
+subtest 'from memory' =>{
+  my $fh = open :r, 't/test.xlsx', :bin;
+  my Buf $buf = $fh.read: 't/test.xlsx'.IO.s;
+  $fh.close;
+  my $data = nativecast(Pointer, $buf);
+  my $handler = xlsxioread_open_memory($data, $buf.bytes, 1);
+  isa-ok $handler, xlsxioreader, 'open data in memory';
+  my Str $sheet-name;
+  xlsxioread_list_sheets($handler, -> $name, $callbackdata { $sheet-name = $name; 1 }, $handler);
+  is $sheet-name, 'Sheet1', 'read sheet list';
+
+  my $sheet = xlsxioread_sheet_open($handler, $sheet-name, XLSXIOREAD_SKIP_EMPTY_ROWS);
+  isa-ok $sheet, xlsxioreadersheet, 'open sheet';
+  lives-ok { xlsxioread_sheet_close($sheet) }, 'close sheet';
+  lives-ok { xlsxioread_close($handler) }, 'clean data memory';
+}
+
+my $handle = xlsxioread_open('t/test.xlsx');
+isa-ok $handle, xlsxioreader, 'open file';
+
+my $nhandle = xlsxioread_open('nosuchfile.xlsx');
+is $nhandle.DEFINITE, False, 'opening non-existent file returns NULL';
+
+subtest 'cell' => {
+  my Str $sheet-name;
+  my $sheet = xlsxioread_sheet_open($handle, $sheet-name, XLSXIOREAD_SKIP_EMPTY_ROWS);
+
+  ok xlsxioread_sheet_next_row($sheet) != 0, 'next row';
+
+  my Pointer $value = xlsxioread_sheet_next_cell($sheet);
+  my Str $strval = nativecast(Str, $value);
+  is $strval, 'a', 'read cell value as string';
+  lives-ok { xlsxioread_free($value) }, 'free allocated memory';
+
+  xlsxioread_sheet_close($sheet);
+}
+
+subtest 'process using callbacks' => {
+  my @values;
+  my $cell-callback = -> $row, $col, $value, $callbackdata { @values.push: $value with $value; 0 };
+  my $row-callback = -> $row, $maxcol, $callbackdata { 0 };
+  my $sheet-callback = -> $name, $callbackdata {
+    @values.push: "[$name]";
+    xlsxioread_process($callbackdata, $name, XLSXIOREAD_SKIP_EMPTY_ROWS, $cell-callback, $row-callback, $callbackdata)
+  }
+  xlsxioread_list_sheets($handle, $sheet-callback, $handle);
+  #                                                    2121-04-14
+  is-deeply @values, [qw{[Sheet1] a b c 1 2 3 1.1 2.2 3.3 44300 44301 44302 2.1 4.2 6.3}], 'spreadsheet content';
+}
+
+subtest 'cycle sheets' => {
+  my $sheetlist = xlsxioread_sheetlist_open($handle);
+  isa-ok $sheetlist, xlsxioreadersheetlist, 'open sheetlist';
+  my @sheets;
+  while my $sheet = xlsxioread_sheetlist_next($sheetlist) {
+    @sheets.push: $sheet;
+  }
+  is-deeply @sheets, ['Sheet1'], 'read sheetlist';
+  lives-ok { xlsxioread_sheetlist_close: $sheetlist }, 'close sheetlist';
+}
+
+subtest 'indexes' => {
+  my Str $sheet-name;
+  my $sheet = xlsxioread_sheet_open($handle, $sheet-name, XLSXIOREAD_SKIP_EMPTY_ROWS);
+  xlsxioread_sheet_next_row($sheet);
+  my Pointer $value = xlsxioread_sheet_next_cell($sheet);
+  ok xlsxioread_sheet_last_row_index($sheet) == 0, 'last row read';
+  ok xlsxioread_sheet_last_column_index($sheet) == 1, 'last column read';
+  ok xlsxioread_sheet_flags($sheet) == 129, 'read sheet flags';
+  xlsxioread_sheet_close($sheet);
+}
+
+lives-ok { xlsxioread_close($handle) }, 'close file';
+
+done-testing;

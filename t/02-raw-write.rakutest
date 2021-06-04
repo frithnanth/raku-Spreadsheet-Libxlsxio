@@ -1,0 +1,50 @@
+#!/usr/bin/env perl6
+
+use Test;
+use NativeCall;
+use lib 'lib';
+use Spreadsheet::Raw::Libxlsxiowrite;
+use Spreadsheet::Raw::Libxlsxioread;
+use Spreadsheet::Libxlsxio::Constants;
+
+subtest 'version' => {
+  my int32 ($major, $minor, $micro);
+  xlsxiowrite_get_version($major, $minor, $micro);
+  is-deeply ($major, $minor, $micro), (0, 2, 29), 'library version';
+  is xlsxiowrite_get_version_string, '0.2.29', 'library version as string';
+}
+
+subtest 'write' => {
+  my $fileout = 't/wtest.xlsx';
+  LEAVE { $fileout.IO.unlink if $fileout.IO.e }
+
+  my $handle = xlsxiowrite_open($fileout, 'Sheet1');
+  isa-ok $handle, xlsxiowriter, 'open file';
+
+  xlsxiowrite_set_row_height($handle, 1);
+  xlsxiowrite_set_detection_rows($handle, 10);
+  xlsxiowrite_add_column($handle, "Col1", 16);
+  xlsxiowrite_add_column($handle, "Col2", 0);
+  xlsxiowrite_next_row($handle);
+
+  for ^10 -> $i {
+    xlsxiowrite_add_cell_string($handle, "Test");
+    xlsxiowrite_add_cell_int($handle, $i);
+    xlsxiowrite_next_row($handle);
+  }
+
+  ok xlsxiowrite_close($handle) == 0, 'close file';
+
+  my @values;
+  my $rhandle = xlsxioread_open('t/wtest.xlsx');
+  my $cell-callback = -> $row, $col, $value, $callbackdata { @values.push: $value with $value; 0 };
+  my $row-callback = -> $row, $maxcol, $callbackdata { 0 };
+  my $sheet-callback = -> $name, $callbackdata {
+    @values.push: "[$name]";
+    xlsxioread_process($callbackdata, $name, XLSXIOREAD_SKIP_EMPTY_ROWS, $cell-callback, $row-callback, $callbackdata)
+  }
+  xlsxioread_list_sheets($rhandle, $sheet-callback, $rhandle);
+  is-deeply @values, [qw{[Sheet1] Col1 Col2 Test 0 Test 1 Test 2 Test 3 Test 4 Test 5 Test 6 Test 7 Test 8 Test 9}], 'spreadsheet content';
+}
+
+done-testing;

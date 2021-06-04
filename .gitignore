@@ -1,0 +1,5 @@
+.precomp/
+/Math-Libgsl-Interpolation-*
+/src/*.o
+/Makefile
+/resources/
