@@ -1,4 +1,4 @@
-[![test](https://github.com/frithnanth/raku-Spreadsheet-Libxlsxio/actions/workflows/test.yml/badge.svg)](https://github.com/frithnanth/raku-Spreadsheet-Libxlsxio/actions/workflows/test.yml)
+[![Actions Status](https://github.com/frithnanth/raku-Spreadsheet-Libxlsxio/workflows/test/badge.svg)](https://github.com/frithnanth/raku-Spreadsheet-Libxlsxio/actions)
 
 NAME
 ====
