@@ -1,6 +1,6 @@
 use v6;
 
-unit module Spreadsheet::Raw::Libxlsxioread::Constants:ver<0.0.1>:auth<cpan:FRITH>;
+unit module Spreadsheet::Raw::Libxlsxioread::Constants:ver<0.0.2>:auth<cpan:FRITH>;
 
 constant XLSXIOREAD_SKIP_NONE         is export = 0x00;
 constant XLSXIOREAD_SKIP_EMPTY_ROWS   is export = 0x01;

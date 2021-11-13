@@ -2,5 +2,8 @@ Revision history for Spreadsheet-Libxlsio
 
 {{$NEXT}}
 
+0.0.2  2021-11-13T14:34:58+01:00
+    - Add support for C library v. 0.2.30
+
 0.0.1  2021-06-08T15:31:13+01:00
     - Initial version

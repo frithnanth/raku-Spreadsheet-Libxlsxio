@@ -1,4 +1,4 @@
-unit class Spreadsheet::Libxlsxio:ver<0.0.1>:auth<cpan:FRITH>;
+unit class Spreadsheet::Libxlsxio:ver<0.0.2>:auth<cpan:FRITH>;
 
 use Spreadsheet::Raw::Libxlsxioread;
 use Spreadsheet::Raw::Libxlsxiowrite;
