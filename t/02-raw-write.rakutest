@@ -10,8 +10,12 @@ use Spreadsheet::Libxlsxio::Constants;
 subtest 'version' => {
   my int32 ($major, $minor, $micro);
   xlsxiowrite_get_version($major, $minor, $micro);
-  is-deeply ($major, $minor, $micro), (0, 2, 29), 'library version';
-  is xlsxiowrite_get_version_string, '0.2.29', 'library version as string';
+  if so %*ENV<TEST_AUTHOR> {
+    is-deeply ($major, $minor, $micro), (0, 2, 29|30), 'library version';
+    is xlsxiowrite_get_version_string, '0.2.29'|'0.2.30', 'library version as string';
+  } else {
+    skip 'skipping version test';
+  }
 }
 
 subtest 'write' => {
