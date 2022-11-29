@@ -1,6 +1,8 @@
 Revision history for Spreadsheet-Libxlsio
 
 {{$NEXT}}
+    - Use zef ecosystem
+    - Add support for C library v. 0.2.34
 
 0.0.2  2021-11-13T14:34:58+01:00
     - Add support for C library v. 0.2.30

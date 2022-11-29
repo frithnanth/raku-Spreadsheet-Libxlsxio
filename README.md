@@ -209,8 +209,8 @@ This method returns the C library version as a **Str** or a **List**, if evaluat
 
     my $ss = Spreadsheet::Libxlsxio::Write.new: :file('mydata.xlsx');
     my $version = $ss.version;
-    say $version;      # '0.2.29'
-    say $version.List; # (0 2 29)
+    say $version;      # '0.2.xx'
+    say $version.List; # (0 2 xx)
 
 **All the following methods return their object, so they may be chained.**
 

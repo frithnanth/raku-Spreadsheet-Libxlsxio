@@ -1,4 +1,4 @@
-#!/usr/bin/env perl6
+#!/usr/bin/env raku
 
 use Test;
 use NativeCall;
@@ -31,7 +31,6 @@ subtest 'from memory' =>{
   my $sheet = xlsxioread_sheet_open($handler, $sheet-name, XLSXIOREAD_SKIP_EMPTY_ROWS);
   isa-ok $sheet, xlsxioreadersheet, 'open sheet';
   lives-ok { xlsxioread_sheet_close($sheet) }, 'close sheet';
-  lives-ok { xlsxioread_close($handler) }, 'clean data memory';
 }
 
 my $handle = xlsxioread_open('t/test.xlsx');

@@ -1,4 +1,4 @@
-unit class Spreadsheet::Libxlsxio:ver<0.0.2>:auth<cpan:FRITH>;
+unit class Spreadsheet::Libxlsxio:ver<0.0.2>:auth<zef:FRITH>;
 
 use Spreadsheet::Raw::Libxlsxioread;
 use Spreadsheet::Raw::Libxlsxiowrite;
@@ -382,8 +382,8 @@ This method returns the C library version as a B<Str> or a B<List>, if evaluated
 
 my $ss = Spreadsheet::Libxlsxio::Write.new: :file('mydata.xlsx');
 my $version = $ss.version;
-say $version;      # '0.2.29'
-say $version.List; # (0 2 29)
+say $version;      # '0.2.xx'
+say $version.List; # (0 2 xx)
 
 =end code
 
