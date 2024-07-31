@@ -10,8 +10,8 @@ subtest 'version' => {
   my int32 ($major, $minor, $micro);
   xlsxioread_get_version($major, $minor, $micro);
   if so %*ENV<TEST_AUTHOR> {
-    is-deeply ($major, $minor, $micro), (0, 2, 29|30), 'library version';
-    is xlsxioread_get_version_string, '0.2.29'|'0.2.30', 'library version as string';
+    is-deeply ($major, $minor, $micro), (0, 2, 35), 'library version';
+    is xlsxioread_get_version_string, '0.2.35', 'library version as string';
   } else {
     skip 'skipping version test';
   }

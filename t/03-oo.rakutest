@@ -28,10 +28,10 @@ subtest 'version' => {
   my $sw = Spreadsheet::Libxlsxio::Write.new: :file('t/newfile.xlsx');
   my $wversion = $sw.version;
   if so %*ENV<TEST_AUTHOR> {
-    is $rversion, '0.2.29', 'library reader version as string';
-    is-deeply $rversion.List, (0, 2, 29), 'library reader version';
-    is $wversion, '0.2.29', 'library writer version as string';
-    is-deeply $wversion.List, (0, 2, 29), 'library writer version';
+    is $rversion, '0.2.35', 'library reader version as string';
+    is-deeply $rversion.List, (0, 2, 35), 'library reader version';
+    is $wversion, '0.2.35', 'library writer version as string';
+    is-deeply $wversion.List, (0, 2, 35), 'library writer version';
   } else {
     is $rversion ~~ Str, True, 'reader version returns a string';
     ok $rversion.List.elems == 3, 'reader version returns a list of three elements';
