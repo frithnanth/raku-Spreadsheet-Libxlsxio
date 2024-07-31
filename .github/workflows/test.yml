@@ -24,7 +24,7 @@ jobs:
           raku-version: ${{ matrix.raku-version }}
       - name: Install libxlsxio
         run: |
-          sudo apt install libzip4t64 libzip-dev libexpat1 libexpat1-dev
+          sudo apt install libzip4 libzip-dev libexpat1 libexpat1-dev
           wget https://github.com/brechtsanders/xlsxio/releases/download/0.2.35/xlsxio-0.2.35.tar.xz
           tar xaf xlsxio-0.2.35.tar.xz
           cd xlsxio-0.2.35
