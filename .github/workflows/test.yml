@@ -25,9 +25,9 @@ jobs:
       - name: Install libxlsxio
         run: |
           sudo apt install libzip5 libzip-dev libexpat1 libexpat1-dev
-          wget https://github.com/brechtsanders/xlsxio/releases/download/0.2.34/xlsxio-0.2.34.tar.xz
-          tar xaf xlsxio-0.2.34.tar.xz
-          cd xlsxio-0.2.34
+          wget https://github.com/brechtsanders/xlsxio/releases/download/0.2.35/xlsxio-0.2.35.tar.xz
+          tar xaf xlsxio-0.2.35.tar.xz
+          cd xlsxio-0.2.35
           sudo make install WITH_LIBZIP=1
           sudo ldconfig
       - name: Install Dependencies
